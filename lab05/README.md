@@ -28,7 +28,7 @@ Download linux (kernel) sources
 
 Unpack
 
-    tar xf src/linux-6.0.2.tar.xz
+    tar xf linux-6.0.2.tar.xz
 
 We should have the sources unpacked
 
@@ -44,7 +44,7 @@ We need to set up a couple of environment variables to tell the kernel build sys
 we are cross-compiling:
 
     export ARCH=arm
-    export CROSS_COMPILE=arm-none-linux-gnueabi-
+    export CROSS_COMPILE=arm-linux-gnueabihf-
  
 We will be using a configuration for a virtual cpu that comes with kernel in the form of a
 "defconfing" (default configuration for a specific machine / type, you can use `make help` to
