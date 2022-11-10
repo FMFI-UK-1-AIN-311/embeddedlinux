@@ -50,6 +50,11 @@ loading the kernel, so let's fetch them first
     cd ..
 
 
+Linux kernel needs openssl headers for some crypto stuff (TODO), so we need to
+install the headers
+
+    apt install libssl-dev
+
 Although the mainline kernel has some support for RPi 1 / Zero, we'll fetch the
 RPi version of the kernel, so things are easier... The defconfig in these
 sources is called `bcmrpi_defconfig`, the rest of building the kernel is the
