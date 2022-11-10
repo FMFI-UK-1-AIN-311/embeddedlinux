@@ -9,3 +9,4 @@ Labs
 - [Lab 5](lab05/)
 - [Lab 6](lab06/)
 - [Lab 7](lab07/)
+- [Lab 8](lab08/)
