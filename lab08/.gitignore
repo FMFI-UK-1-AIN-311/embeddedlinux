@@ -1,0 +1,12 @@
+/src/
+/alsa-lib*
+/alsa-utils*
+/busybox*
+/linux/
+/mpg123*
+/overlays/
+/stage/
+/task/
+
+/rootfs/
+/boot/
