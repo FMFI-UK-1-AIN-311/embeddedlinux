@@ -129,7 +129,7 @@ instead of the cross-compiled libraries we want. This is much harder to solve.
 
 Modern compilers support a feature called "sysroot": we can tell them to look
 for everything in a new system "root" where it will look for everything. We then
-just need to create one that will contain exactly what we need. Note that 
+just need to create one that will contain exactly what we need.
 
 Note: the Makefile uses intermediate directories to install packages to, and
 then builds the actual sysroot by copying every required package into it
