@@ -5,6 +5,7 @@ Embedded linux
 Labs
 ----
 
+- [Lab 1](lab01/)
 - [Lab 4](lab04/)
 - [Lab 5](lab05/)
 - [Lab 6](lab06/)
