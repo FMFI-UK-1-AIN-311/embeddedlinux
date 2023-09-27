@@ -1,5 +1,5 @@
-Lab 4
-=====
+Raspberry Pi OS with network over usb
+=====================================
 
 We want to play a bit with the RPi foundation provided linux OS before we start
 playing with our own. For that we want to do the following:

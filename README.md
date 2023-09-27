@@ -2,8 +2,12 @@ Embedded linux
 ===============
 
 
-Labs
-----
+- [Intro](00-intro)
+- [Raspberry Pi OS with network over usb](01-raspios-usbnet)
+
+
+Old Labs
+--------
 
 - [Lab 1](lab01/)
 - [Lab 4](lab04/)
