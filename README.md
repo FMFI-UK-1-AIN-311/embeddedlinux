@@ -4,6 +4,7 @@ Embedded linux
 
 - [Intro](00-intro)
 - [Raspberry Pi OS with network over usb](01-raspios-usbnet)
+- [Compile a kernel for RPi zero](02-rpi-kernel)
 
 
 Old Labs
