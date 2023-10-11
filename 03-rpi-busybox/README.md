@@ -82,7 +82,10 @@ because busybox builds only one binary that does different things based on what
 name it was invoked as. If it is invoked through the `ls` symlink, it will
 execute the `ls` "function".
 
-Let's copy it over to our rootfs
+Let's copy it over to our rootfs. This step expects that you [re-formatted the
+rootfs partition previously](../02-rpi-kernel#root-filesystem-partition).
+Depending on how you mounted the ext4 filesystem, you might need to run the following
+command as root (`sudo rsync...`)
 
     rsync -av _install/ /media/${USER}/rootfs/
 
