@@ -6,6 +6,7 @@ Embedded linux
 - [Raspberry Pi OS with network over usb](01-raspios-usbnet)
 - [Compile a kernel for RPi zero](02-rpi-kernel)
 - [Some userspace (busybox) for RPi zero](03-rpi-busybox)
+- [Some more userspace (cross compiling applications and libraries)](04-rpi-more-userspace)
 
 Old Labs
 --------
