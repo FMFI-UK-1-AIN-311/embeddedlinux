@@ -326,6 +326,12 @@ And finaly install them into sysroot
 
     rsync -av ${STAGE?}/linux_modules/ ${SYSROOT?}/
 
+### Audio group for alsa library
+
+The alsa library expects an `audio` group to be configured, which is done ine a `/etc/group` file, but we have none for now..
+
+    mkdir ${SYSROOT?}/etc
+    echo 'audio:x:1000:' > ${SysROOT?}/etc/group
 
 ### Final filesystem
 
@@ -343,4 +349,6 @@ TODO ;)))
 
 load soundcard module...
 (if we don't have real sound cards, because I forgot them, load `snd-dummy`)
+
+    modprobe snd_usb_audio
 
