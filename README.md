@@ -7,6 +7,7 @@ Embedded linux
 - [Compile a kernel for RPi zero](02-rpi-kernel)
 - [Some userspace (busybox) for RPi zero](03-rpi-busybox)
 - [Some more userspace (cross compiling applications and libraries)](04-rpi-more-userspace)
+- [Automating the build](05-automating-the-build)
 
 Old Labs
 --------
