@@ -8,6 +8,8 @@ Embedded linux
 - [Some userspace (busybox) for RPi zero](03-rpi-busybox)
 - [Some more userspace (cross compiling applications and libraries)](04-rpi-more-userspace)
 - [Automating the build](05-automating-the-build)
+- [Working with the defconfigs](05.5-defconfigs)
+- [Buildroot](06-buildroot) to ~~rule^W~~ build them all
 
 Old Labs
 --------
