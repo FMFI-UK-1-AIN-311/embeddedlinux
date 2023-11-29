@@ -10,6 +10,9 @@ Embedded linux
 - [Automating the build](05-automating-the-build)
 - [Working with the defconfigs](05.5-defconfigs)
 - [Buildroot](06-buildroot) to ~~rule^W~~ build them all
+- [WiFi access point](07-wifi-ap) in our buildroot build
+
+
 
 Old Labs
 --------
