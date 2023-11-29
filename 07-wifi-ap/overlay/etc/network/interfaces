@@ -6,5 +6,6 @@ auto wlan0
 iface wlan0 inet static
   address 192.168.9.1
   netmask 255.255.255.0
-  pre-up hostapd -B /etc/hostapd.conf
-  post-down killall -q hostapd
+# This blocks the startup for some reason
+#  pre-up hostapd -B /etc/hostapd.conf
+#  post-down killall -q hostapd
