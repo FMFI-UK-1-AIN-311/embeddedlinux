@@ -29,8 +29,9 @@ card](https://dai.fmph.uniba.sk/~siska/embeddedlinux/sdcard.php)
 
 TODO move the guide here ?
 
-Note: it uses `boot` as the name of the boot partition, while the new version
-of RPi OS use `bootfs`, so we will use the new name throughout this guide.
+Note: the old guide uses `boot` as the name of the boot partition, while the
+new version of RPi OS use `bootfs`, so we will use the new name throughout this
+guide.
 
 After partitioning, mount the partitions. The following commands assume that the
 partitions will be mounted at `/media/${USER}/bootfs` and `/media/${USER}/rootfs`.
@@ -49,9 +50,7 @@ loading the kernel, so let's fetch them first
 
     mkdir -p firmware
     cd firmware
-    wget https://github.com/raspberrypi/firmware/raw/master/boot/bootcode.bin
-    wget https://github.com/raspberrypi/firmware/raw/master/boot/fixup.dat
-    wget https://github.com/raspberrypi/firmware/raw/master/boot/start.elf
+    wget https://github.com/raspberrypi/firmware/raw/master/boot/{bootcode.bin,fixup.dat,start.elf}
     cd ..
 
 
@@ -60,7 +59,7 @@ loading the kernel, so let's fetch them first
 Linux kernel needs openssl headers for some crypto stuff (TODO should be
 possible to turn off?), so we need to install the headers
 
-    apt install libssl-dev
+    apt install build-essential bc bison flex libssl-dev
 
 Although the mainline kernel has some support for RPi 1 / Zero, we'll fetch the
 RPi version of the kernel, so things are easier...
@@ -68,18 +67,23 @@ RPi version of the kernel, so things are easier...
 Download the sources from github (we don't want to clone the whole git repo
 with history right now ;)
 
-    wget https://github.com/raspberrypi/linux/archive/refs/heads/rpi-6.1.y.tar.gz
+    git clone --depth=1 https://github.com/raspberrypi/linux.git
+    cd linux
 
-Unpack it
+or
 
+    wget https://github.com/raspberrypi/linux/archive/refs/heads/rpi-6.12.y.tar.gz
     tar xf rpi-6.1.y.tar.gz
-
-and change into its directory:
-
     cd linux-rpi-6.1.y/
 
 We need to set up a couple of environment variables to tell the kernel build
-system that we are cross-compiling:
+system that we are cross-compiling. The `ARCH` variable is used by the kernel build system to select which
+configs to use and which parts of the kernel to build. The `CROSS_COMPILE`
+variable gives the prefix of the toolchain the kernel build system should use.
+With the following value (that matches the arm softloat toolchain from ubuntu)
+the kernel build will use `arm-linux-gnueabi-gcc` instead of `gcc` etc. That
+executable is expeced to be in `PATH` in this setup, but `CROSS_COMPILE` could
+also contain the full path.
 
     export ARCH=arm
     export CROSS_COMPILE=arm-linux-gnueabi-
@@ -95,15 +99,29 @@ apply that:
 
     make bcmrpi_defconfig
 
+You can check the other various defconfigs for other RPi variants [in the RPi
+docs](https://www.raspberrypi.com/documentation/computers/linux_kernel.html#cross-compiled-build-configuration).
+
+Now would be the time to explore the kernel configuration and set any special
+configuration options we might want (running `menuconfig` needs
+`libncurses5-dev` package to be installed on ubuntu):
+
+    make menuconfig
+
+For this build we'll however go with the defaults.
 Now that the build system is properly configured, we can build the actual
 kernel (`zImage` is a gzipped version, see `make help` for other options.)
 
-    make -j$(nproc) zImage dtbs
+    time make -j$(nproc) zImage dtbs
+
+On 4 core / 4 thread Intel i5-10210U:
+
+    real    11m3,897s
 
 Note: running `make -j$(nproc)` without further argument would run the
 "default" build, which also includes modules, which takes a lot of time and we
 don't need them now, so we just build the kernel image itself and "hadrware
-description" files - device trees): 
+description" files - device trees).
 
 ## Copy files to the boot partition
 
@@ -112,9 +130,9 @@ bootloader), the device trees (we really only need the correct RPi Zero W one,
 but let's copy all of them) and also the firmware files
 
 
-    cp -ar ../firmware/*  /media/${USER}/bootfs/
-    cp -ar arch/arm/boot/zImage  /media/${USER}/bootfs/kernel.img
-    cp -ar arch/arm/boot/dts/*.dtb /media/${USER}/bootfs/
+    cp -arv ../firmware/*  /media/${USER}/bootfs/
+    cp -arv arch/arm/boot/zImage  /media/${USER}/bootfs/kernel.img
+    cp -arv arch/arm/boot/dts/broadcom/*.dtb /media/${USER}/bootfs/
 
 We also need the device tree overlays (those go into an `overlays`
 subdirectory). Again, we really need only one of them, but let's copy all:
@@ -124,7 +142,7 @@ subdirectory). Again, we really need only one of them, but let's copy all:
 
 Next, set up the `config.txt` and `cmdline.txt` files. On RPis with bluetooth
 (such as Zero W), the main serial port will be redirected to bluetooth, so we need to
-"redirect" it back to the GPIO pins using the `miniuar-bt` overlay (TODO
+"redirect" it back to the GPIO pins using the `miniuart-bt` overlay (TODO
 explanation...)
 
     echo "dtoverlay=miniuart-bt" > /media/${USER}/bootfs/config.txt
@@ -143,6 +161,15 @@ You can erase it / create an empty rootfs partition with (make sure the
 partition isn't mounted)
 
     mkfs.ext4 -L rootfs /dev/${your_device_for_the_rootfs_partition?}
+
+The ext4 filesystem enforces access rights (unlike the FAT filesystem in bootfs
+partition). Most linux systems will allow you to mount it as a user, but the
+root of the filesystem will be writable only by root. As we don't care about
+access rights there right now (we will be running everything as root), we can
+change the ownership of the root of the filesystem to our (non-root) user and
+copy files over as that user:
+
+    sudo chown $(id -u):$(id -g) /media/${USER}/rootfs
 
 ## Booting the Pi
 
