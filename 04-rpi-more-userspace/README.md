@@ -76,15 +76,15 @@ let's try to build it for our computer.
 Check out [mpg123's homepage](https://www.mpg123.de/) and download the source
 code
 
-    wget https://deac-ams.dl.sourceforge.net/project/mpg123/mpg123/1.32.3/mpg123-1.32.3.tar.bz2
+    wget https://deac-ams.dl.sourceforge.net/project/mpg123/mpg123/1.33.3/mpg123-1.33.3.tar.bz2
 
 and unpack it
 
-    tar xf mpg123-1.32.3.tar.bz2
+    tar xf mpg123-1.33.3.tar.bz2
 
 then change into the unpacked directory
 
-    cd mpg123-1.32.3
+    cd mpg123-1.33.3
 
 You could check the configure options `./configure --help`, for now will go with
 the defaults nad only change the install location ("prefix")
@@ -109,6 +109,10 @@ Now we can try to run it
     ../mpg123-install/bin/mpg123
 ../mpg123-install/bin/mpg123: error while loading shared libraries: libout123.so.0: cannot open shared object file: No such file or directory
 
+*Note: with recent versions of mpg123 and maybe depending system configuration,
+it might actually work OK, because `RPATH` will be set by the build system and
+you can skip the `LD_LIBRARY_PATH` part.*
+
 Oops.. looks like it would some dynamic libraries:
 
     ldd ../mpg123-install/bin/mpg123
@@ -130,7 +134,7 @@ Now we can try again (you can also check with `ldd` as before)
     You made some mistake in program usage... let me briefly remind you:
     
     High Performance MPEG 1.0/2.0/2.5 Audio Player for Layers 1, 2 and 3
-            version 1.32.3; written and copyright by Michael Hipp and others
+            version 1.33.3; written and copyright by Michael Hipp and others
             free software (LGPL) without any warranty but with best wishes
     
     usage: mpg123 [option(s)] [file(s) | URL(s) | -]
@@ -250,10 +254,9 @@ TODO host triplets, --build --host...
 
 
 
-
-    wget http://www.alsa-project.org/files/pub/lib/alsa-lib-1.2.5.1.tar.bz2
-    tar xf alsa-lib-1.2.5.1.tar.bz2
-    cd alsa-lib-1.2.5.1/
+    wget http://www.alsa-project.org/files/pub/lib/alsa-lib-1.2.14.tar.bz2
+    tar xf alsa-lib-1.2.14.tar.bz2
+    cd alsa-lib-1.2.14/
 
     LDFLAGS="--sysroot=${SYSROOT?}" CFLAGS="--sysroot=${SYSROOT?}" \
         ./configure --host=${HOST?} --prefix=/usr
@@ -276,9 +279,9 @@ Finished in alsa-libs, we can move out of that directory ;)
 First, remove the old compilation of mpg123 for your computer if you are doing
 this in the same directory :).
 
-    wget https://deac-ams.dl.sourceforge.net/project/mpg123/mpg123/1.32.3/mpg123-1.32.3.tar.bz2
-    tar xf mpg123-1.32.3.tar.bz2
-    cd mpg123-1.32.3
+    wget https://deac-ams.dl.sourceforge.net/project/mpg123/mpg123/1.33.3/mpg123-1.33.3.tar.bz2
+    tar xf mpg123-1.33.3.tar.bz2
+    cd mpg123-1.33.3
 
 This time we will run mpg123's configure with an argument specifying that we
 wnat just the alsa audio backend (in addition to the options needed for
@@ -306,21 +309,25 @@ but the alsa project also has some handy tools (volume mixer, simple wav
 player/recorder etc.) These are in a separate package called alsa-utils.
 You can download and build them similarly to previous two items.
 
-    wget http://www.alsa-project.org/files/pub/utils/alsa-utils-1.2.5.1.tar.bz2
+    wget http://www.alsa-project.org/files/pub/utils/alsa-utils-1.2.14.tar.bz2
     ...
 
 ### modules
 
-To be able 
+We will need the kernel modules for the sound subsystem and usb sound card.
 
 In the kernel build (don't forget to set `ARCH` and `CROSS_COMPILE` correctly)
 run (this will take moooore time than the kernel itself):
 
     make -j$(nproc) modules
 
+*Note: this took almost half an hour on my laptop: `real    24m46,895s`. Maybe
+we should look into disabling all modules and re-enabling only the required
+(snd) ones.*
+
 Then install them to the staging dir
 
-	make modules_install INSTALL_MOD_PATH=${STAGE?}/linux_modules
+    make modules_install INSTALL_MOD_PATH=${STAGE?}/linux_modules
 
 And finaly install them into sysroot
 
@@ -331,7 +338,14 @@ And finaly install them into sysroot
 The alsa library expects an `audio` group to be configured, which is done ine a `/etc/group` file, but we have none for now..
 
     mkdir ${SYSROOT?}/etc
-    echo 'audio:x:1000:' > ${SysROOT?}/etc/group
+    echo 'audio:x:1000:' > ${SYSROOT?}/etc/group
+
+### Mountpoints for dev, sys, proc
+
+Create a mount point for `/dev` (needed for busybox to start correctly) and while we are at it,
+we can also create the ones for `/proc` and `/sys`.
+
+    mkdir ${SYSROOT?}/{dev,proc,sys}
 
 ### Final filesystem
 
