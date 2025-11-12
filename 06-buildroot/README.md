@@ -22,14 +22,21 @@ run it:
 
 ## Basic configuration
 
+Clone the repository
+
     git clone git://git.buildroot.net/buildroot
 
+Change to the directory
+
+    cd buildroot
+
+List all defconfigs that buildroot knows and filter the raspbery pi ones
 
     make list-defconfigs | grep raspberry
 
-We'll select `raspberrypi0w_defconfig`:
+We'll select ~`raspberrypi0w_defconfig`~ `raspberrypizero2w_defconfig`:
 
-    make raspberrypi0w_defconfig
+    make raspberrypizero2w_defconfig
 
 
 By default `buildroot` will compile it's own toolchain, but that would take a log of time.
@@ -89,7 +96,9 @@ direcotry here ;)
 
 ## Build it
 
-    make
+    time nice -n10 ionice -c 3 make | tee build.log
+
+On my thermal throttling laptop: `real    52m55,170s`
 
 Note: buildroot desn't build packages in parallel (i.e. as with `-j1`), however it
 will build each package with a parallel make according to the `Build options` >
