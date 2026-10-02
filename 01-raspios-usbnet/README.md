@@ -94,13 +94,13 @@ filesystem):
     mount /dev/mmcblk0p1 /mnt/boot
 
 The following text will assume that the `boot` partition is mounted on
-`/media/yoyo/bootfs`.
+`/media/${USER}/bootfs`.
 
 ### Set up ssh to start automatically
 
 Just create an empty file named ssh:
 
-    touch /media/yoyo/bootfs/ssh
+    touch /media/${USER}/bootfs/ssh
 
 ### Set up a user and password
 
@@ -113,17 +113,17 @@ section of the RPi docs):
 
 You can set it up directly with the following command:
 
-    echo "pi:$(openssl passwd -6)" > /media/yoyo/bootfs/userconf.txt
+    echo "pi:$(openssl passwd -6)" > /media/${USER}/bootfs/userconf.txt
 
 ### Set up usb networking
 
 Add `dtoverlay=dwc2` at the end of `config.txt`:
 
-    echo "dtoverlay=dwc2" >>/media/yoyo/bootfs/config.txt
+    echo "dtoverlay=dwc2" >>/media/${USER}/bootfs/config.txt
 
 Add `modules-load=dwc2,g_ether` to `cmdline.txt`, just after the `rootwait` option:
 
-    sed -i -e "s/rootwait/rootwait modules-load=dwc2,g_ether/" /media/yoyo/bootfs/cmdline.txt
+    sed -i -e "s/rootwait/rootwait modules-load=dwc2,g_ether/" /media/${USER}/bootfs/cmdline.txt
 
 
 Booting the RPi
