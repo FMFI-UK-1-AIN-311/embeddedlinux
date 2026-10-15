@@ -19,7 +19,7 @@ We need a couple of things to prepare when working with a real RPi:
 ### Formatting the SD card
 
 We need to create to partitions on the sd card: a FAT "boot" partition and an
-ext4[^rootfs-type] "rootfs" partition. The instructions will show how to do with
+ext4 "rootfs" partition. The instructions will show how to do with
 `fdisk`, but you could use other software to partition it (`parted` is a more
 user friendly console program, GParted and KDE Partition Manager are gui
 programs).
@@ -72,9 +72,9 @@ with history right now ;)
 
 or
 
-    wget https://github.com/raspberrypi/linux/archive/refs/heads/rpi-6.12.y.tar.gz
-    tar xf rpi-6.1.y.tar.gz
-    cd linux-rpi-6.1.y/
+    wget https://github.com/raspberrypi/linux/archive/refs/heads/rpi-6.18.y.tar.gz
+    tar xf rpi-6.18.y.tar.gz
+    cd linux-rpi-6.18.y/
 
 We need to set up a couple of environment variables to tell the kernel build
 system that we are cross-compiling. The `ARCH` variable is used by the kernel build system to select which
@@ -87,6 +87,10 @@ also contain the full path.
 
     export ARCH=arm
     export CROSS_COMPILE=arm-linux-gnueabi-
+
+If you compiled your own [toolchain with crosstool-ng](../99-crosstool-ng), you
+should set `PATH` to point to its `bin` directory and set `CROSS_COMPILE` to
+`armv6-rpi-linux-gnueabihf`.
 
 With the proper architecture set, we can check which boards the kernel has
 "prepared" configs (well, we'll just grep for the rpi one here, you can look
@@ -187,8 +191,83 @@ Run the terminal emulator, check the device name on your computer:
 RPi should boot the kernel and print its logs to the serial console.  With no
 rootfs filesystem / partition, it should complain about not being able to mount
 the root filesystem. With an empty rootfs partition it will complain about not
-having an `init` process.
+having an `init` process:
 
+```
+[    4.498894] EXT4-fs (mmcblk0p2): mounted filesystem cf68f083-6408-4454-a703-81bf9c54fe56 ro with ordered data mode. Quota mode: none.
+[    4.499017] VFS: Mounted root (ext4 filesystem) readonly on device 179:2.
+[    4.500327] devtmpfs: error mounting -2
+[    4.528463] Freeing unused kernel image (initmem) memory: 496K
+[    4.528503] Kernel memory protection not selected by kernel config.
+[    4.528540] Run /sbin/init as init process
+[    4.528548]   with arguments:
+[    4.528552]     /sbin/init
+[    4.528556]   with environment:
+[    4.528560]     HOME=/
+[    4.528564]     TERM=linux
+[    4.528646] Kernel panic - not syncing: Requested init /sbin/init failed (error -2).
+[    4.566430] CPU: 0 UID: 0 PID: 1 Comm: swapper/0 Not tainted 6.18.56 #1 VOLUNTARY
+[    4.574016] Hardware name: BCM2835
+[    4.577421] Call trace:
+[    4.577439]  unwind_backtrace from show_stack+0x18/0x1c
+[    4.585252]  show_stack from dump_stack_lvl+0x38/0x58
+[    4.590329]  dump_stack_lvl from vpanic+0xcc/0x2ac
+[    4.595139]  vpanic from warn_slowpath_fmt+0x0/0xd8
+[    4.600052] ---[ end Kernel panic - not syncing: Requested init /sbin/init failed (error -2). ]---
+```
+
+## A very minimalistic init
+
+```sh
+cat >init.c <<EOF
+#include <stdio.h>
+#include <unistd.h>
+#include <termios.h>
+
+int main(int argc, char* argv[]) {
+        printf("\n\n\nMy SUPER init!!!!\n\n\n");
+        tcdrain(1);
+
+        return 2;
+}
+EOF
+```
+
+```sh
+${CROSS_COMPILE?}gcc -static -o init init.c
+mkdir /media/${USER}/rootfs/sbin
+cp -av init /media/${USER}/rootfs/sbin
+```
+
+We should now see that the init process is started and writes our message,
+but the kernel will still be very unhappy that it finishes
+
+```
+[    4.473158] EXT4-fs (mmcblk0p2): mounted filesystem cf68f083-6408-4454-a703-81bf9c54fe56 ro with ordered data mode. Quota mode: none.
+[    4.473291] VFS: Mounted root (ext4 filesystem) readonly on device 179:2.
+[    4.474591] devtmpfs: error mounting -2
+[    4.479703] Freeing unused kernel image (initmem) memory: 496K
+[    4.479739] Kernel memory protection not selected by kernel config.
+[    4.479776] Run /sbin/init as init process
+
+
+
+My SUPER init!!!!
+
+
+[    4.572115] Kernel panic - not syncing: Attempted to kill init! exitcode=0x00000200
+[    4.579817] CPU: 0 UID: 0 PID: 1 Comm: init Not tainted 6.18.56 #1 VOLUNTARY
+[    4.586970] Hardware name: BCM2835
+[    4.590377] Call trace:
+[    4.590395]  unwind_backtrace from show_stack+0x18/0x1c
+[    4.598207]  show_stack from dump_stack_lvl+0x38/0x58
+[    4.603285]  dump_stack_lvl from vpanic+0xcc/0x2ac
+[    4.608094]  vpanic from warn_slowpath_fmt+0x0/0xd8
+[    4.613004] ---[ end Kernel panic - not syncing: Attempted to kill init! exitcode=0x00000200 ]---
+```
+
+We could now start writing our own userspace... Or we could use something ready
+made...
 
 [^ubuntu-arm-hf-rpi]: While RPi zero (or RPi 1) has hardware floating point
   support, the hardfloat arm toolchain present in ubuntu is by default
