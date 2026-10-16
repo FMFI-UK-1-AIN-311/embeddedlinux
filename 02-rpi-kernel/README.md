@@ -3,10 +3,14 @@ Kernel on RPi
 
 Let's try to compile our own kernel for RPi.
 
-**Note: we will use the "softfloat" (no "hf") crosscompiler version from ubuntu,
+**Note: on Ubuntu we will use the "softfloat" (no "hf") crosscompiler version,
 because the hardfloat version produces "incompatible" binaries
 [^ubuntu-arm-hf-rpi].**
 
+
+**Alternatively, or for other distros, you can [compile your own toolchain
+using crosstool-ng](../99-crosstool-ng) or use a [one I
+compiled](https://dai.fmph.uniba.sk/~yoyo/embeddedlinux/files/armv6-rpi-linux-gnueabihf.tar.gz).**
 
 ## Preparation
 
