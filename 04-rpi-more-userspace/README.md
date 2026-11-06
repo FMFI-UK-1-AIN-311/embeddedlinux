@@ -154,6 +154,18 @@ so we will need to compile two things:
 Oh, and because we don't want to mess with static binaries anymore, we'll need
 to get some `libc` libraries on the device...
 
+And we'll actually need a sound card driver, which is currently configured as
+kernel module in our kernel builds, to actually be able to get some sound...
+
+So our plan is to get the following on the rootfs:
+
+- dynamic loader, libc
+- busybox
+- alsa libs
+- mpg123
+- kernel modules
+
+
 But first we need to talk about how the compiler finds the right headers and
 libraries when cross-compiling...
 
