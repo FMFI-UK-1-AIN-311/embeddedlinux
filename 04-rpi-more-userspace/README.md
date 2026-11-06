@@ -392,6 +392,9 @@ You can download and build them similarly to previous two items.
     wget https://www.alsa-project.org/files/pub/utils/alsa-utils-1.2.14.tar.bz2
     ...
 
+When running `configure`, use `--disable-alsamixer` to disable compilation of alsamixer
+which uses ncurses (and we would also need to download/compile ncurses and other libs).
+
 ### modules
 
 We will need the kernel modules for the sound subsystem and usb sound card.
