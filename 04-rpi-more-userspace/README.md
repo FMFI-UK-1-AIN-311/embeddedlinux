@@ -2,7 +2,7 @@ More userspace or compiling programs and libraries
 ==================================================
 
 Compiling busybox was fine (and it gave us a fully functional small linux
-system,) but we would like also include some more interesting programs.
+system), but we would like also include some more interesting programs.
 
 To do that, we will need
 
@@ -42,7 +42,7 @@ configured in the first step):
 
 
 Most projects come with a default to install into `/usr/local` (which on
-unix/linux is the location, where softwer installed / built manually by the
+unix/linux is the location, where software installed / built manually by the
 users should be placed if it should be available to everyone), which is only
 writable by root. If a user just wants to install software for themselves, they
 can install it into a directory inside their `home`, which would usually look
@@ -54,15 +54,15 @@ like
 
 #### CMake
 
-CMake is a (relatively newer) build tool for (mostly, but no only) C/C++ applications.
+CMake is a (relatively newer) build tool for (mostly, but not only) C/C++ applications.
 While it uses the same 3 steps, the invocations are slightly different:
 
-    # configure a cmake build (inside a different "build" direcotry
+    # configure a cmake build (inside a different "build" directory
     mkdir build
     cd build
     cmake -DCMAKE_INSTALL_PREFIX=${HOME}/usr ..  # the .. argument is path to the sources
 
-    # build, the default "gnerator" in cmake is Makefiles, so we build with make
+    # build, the default "generator" in cmake is Makefiles, so we build with make
     make -j$(nproc)
 
     # install
@@ -76,7 +76,7 @@ let's try to build it for our computer.
 Check out [mpg123's homepage](https://www.mpg123.de/) and download the source
 code
 
-    wget https://deac-ams.dl.sourceforge.net/project/mpg123/mpg123/1.33.3/mpg123-1.33.3.tar.bz2
+    wget https://www.mpg123.de/download/mpg123-1.33.3.tar.bz2
 
 and unpack it
 
@@ -87,7 +87,7 @@ then change into the unpacked directory
     cd mpg123-1.33.3
 
 You could check the configure options `./configure --help`, for now will go with
-the defaults nad only change the install location ("prefix")
+the defaults and only change the install location ("prefix")
 
     ./configure --prefix=$PWD/../mpg123-install/
 
@@ -95,7 +95,7 @@ Compile it
 
     make -j$(nproc)
 
-You can find the binary in `src/.libs`, but we can properly "instlal" it into
+You can find the binary in `src/.libs`, but we can properly "install" it into
 the directory we specified with the `--prefix` parameter before by running
 
     make install
@@ -113,7 +113,7 @@ Now we can try to run it
 it might actually work OK, because `RPATH` will be set by the build system and
 you can skip the `LD_LIBRARY_PATH` part.*
 
-Oops.. looks like it would some dynamic libraries:
+Oops.. looks like it needs some dynamic libraries:
 
     ldd ../mpg123-install/bin/mpg123
 
@@ -122,7 +122,7 @@ Oops.. looks like it would some dynamic libraries:
             libout123.so.0 => not found
             libsyn123.so.0 => not found
 
-Remeber the libraries in `../mpg123-install/lib`? We need to tell the
+Remember the libraries in `../mpg123-install/lib`? We need to tell the
 dynamic loader to look there
 
     export LD_LIBRARY_PATH=$PWD/../mpg123-install/lib
@@ -194,7 +194,7 @@ Modern compilers support a feature called "sysroot": we can tell them to look
 for everything in a new system "root" where it will look for everything. We then
 just need to create one that will contain exactly what we need.
 
-Note: automaged build systems use intermediate directories to install packages
+Note: automated build systems use intermediate directories to install packages
 to, and then build the actual sysroot by copying every required package into it
 (possibly filtering out big data files that are not needed etc.) This makes it
 easier to "rebuild" the sysroot with a different set of packages (i.e. when we
@@ -203,7 +203,7 @@ something in the sysroot.)
 
 We'll use the variables STAGE and SYSROOT to point to two directories, which
 we'll use as the staging and sysroot directories (the staging dir will have
-separate subdirecotries for each "package".)
+separate subdirectories for each "package".)
 
     STAGE=$PWD/stage
     SYSROOT=$PWD/sysroot
@@ -243,7 +243,7 @@ TODO
 TOOLCHAIN_DIR=/usr/arm-linux-gnueabi
 mkdir -p ${STAGE?}/libc
 # copy everything except include (which we'll copy later), bin, which contains
-# x86 binaries and and locale-archive # which we don't want right now (it's
+# x86 binaries and locale-archive which we don't want right now (it's
 # a big locale information database)
 rsync -av --exclude="locale-archive" --exclude=include --exclude=bin --copy-unsafe-links ${TOOLCHAIN_DIR?}/ ${STAGE?}/libc/
 # we want include under /usr
@@ -252,7 +252,7 @@ rsync -av ${TOOLCHAIN_DIR?}/include ${STAGE?}/libc/usr/
 ```
 
 Note: we want `include` in the sysroot, so we can compile against it, but we
-don't need it on the devce to run programs...
+don't need it on the device to run programs...
 
 And now put it into the sysroot
 
@@ -266,7 +266,7 @@ TODO host triplets, --build --host...
 
 
 
-    wget http://www.alsa-project.org/files/pub/lib/alsa-lib-1.2.14.tar.bz2
+    wget https://www.alsa-project.org/files/pub/lib/alsa-lib-1.2.14.tar.bz2
     tar xf alsa-lib-1.2.14.tar.bz2
     cd alsa-lib-1.2.14/
 
@@ -291,13 +291,13 @@ Finished in alsa-libs, we can move out of that directory ;)
 First, remove the old compilation of mpg123 for your computer if you are doing
 this in the same directory :).
 
-    wget https://deac-ams.dl.sourceforge.net/project/mpg123/mpg123/1.33.3/mpg123-1.33.3.tar.bz2
+    wget https://www.mpg123.de/download/mpg123-1.33.3.tar.bz2
     tar xf mpg123-1.33.3.tar.bz2
     cd mpg123-1.33.3
 
 This time we will run mpg123's configure with an argument specifying that we
-wnat just the alsa audio backend (in addition to the options needed for
-cross-compilation
+want just the alsa audio backend (in addition to the options needed for
+cross-compilation)
 
     LDFLAGS="--sysroot=${SYSROOT?}" CFLAGS="--sysroot=${SYSROOT?}" \
         ./configure --host=${HOST?} --prefix=/usr \
@@ -321,7 +321,7 @@ but the alsa project also has some handy tools (volume mixer, simple wav
 player/recorder etc.) These are in a separate package called alsa-utils.
 You can download and build them similarly to previous two items.
 
-    wget http://www.alsa-project.org/files/pub/utils/alsa-utils-1.2.14.tar.bz2
+    wget https://www.alsa-project.org/files/pub/utils/alsa-utils-1.2.14.tar.bz2
     ...
 
 ### modules
@@ -341,16 +341,16 @@ Then install them to the staging dir
 
     make modules_install INSTALL_MOD_PATH=${STAGE?}/linux_modules
 
-And finaly install them into sysroot
+And finally install them into sysroot
 
     rsync -av ${STAGE?}/linux_modules/ ${SYSROOT?}/
 
 ### Audio group for alsa library
 
-The alsa library expects an `audio` group to be configured, which is done ine a `/etc/group` file, but we have none for now..
+The alsa library expects an `audio` group to be configured, which is done in a `/etc/group` file, but we have none for now.
 
-    mkdir ${SYSROOT?}/etc
-    echo 'audio:x:1000:' > ${SYSROOT?}/etc/group
+    mkdir -p ${SYSROOT?}/etc
+    echo 'audio:x:29:' > ${SYSROOT?}/etc/group
 
 ### Mountpoints for dev, sys, proc
 
@@ -362,8 +362,8 @@ we can also create the ones for `/proc` and `/sys`.
 ### Final filesystem
 
 We can now copy over the final filesystem (sysroot) to the rootfs on the sd card.
-Note that we could ommit unneeded files (such as the c includes,) but it doesn't
-ammount to too much space right now.
+Note that we could omit unneeded files (such as the c includes,) but it doesn't
+amount to too much space right now.
 
     sudo rsync -av ${SYSROOT?}/ /media/${USER}/rootfs/
 
