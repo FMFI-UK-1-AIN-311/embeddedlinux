@@ -170,7 +170,7 @@ But first we need to talk about how the compiler finds the right headers and
 libraries when cross-compiling...
 
 
-#### sysroot
+### sysroot
 
 When building multiple projects (libraries and programs), that depend on each
 other, one has to make sure that the build system can find the dependencies,
@@ -267,15 +267,25 @@ And put it into the sysroot
 
 We don't want to compile a glibc package completely from source as all the
 required libraries are already part of the crosscompiler, so we just grab them.
-On ubuntu, the `gcc-arm-linux-gnueabi` package pulls in a very minimal libc
-that should be OK for us. If you used crosstool-ng to compile your own
-cross-compiler, it will contain a more complete libc build (already prepared
-in a nice `sysroot` directory, see above).
+Below are two variants, depending on which cross-compiler you are using (pick
+one, and use the same toolchain for everything that follows):
 
-TODO
+- the one from the ubuntu `gcc-arm-linux-gnueabi` package, which pulls in a very
+  minimal libc that should be OK for us,
+- the one you built with [crosstool-ng](../99-crosstool-ng), which contains a
+  more complete libc build (already prepared in a nice `sysroot` directory).
+
+Note: the two toolchains target different ABIs (`arm-linux-gnueabi` is
+soft-float, `armv6-rpi-linux-gnueabihf` is hard-float, and the dynamic loader is
+named differently), so the libc, the compiled libraries and programs must all
+come from the same toolchain. Remember which one you chose, we will need its
+"host triplet" when configuring the libraries below.
+
+#### ubuntu gcc-arm-linux-gnueabi
 
 ```sh
-TOOLCHAIN_DIR=/usr/arm-linux-gnueabi
+HOST=arm-linux-gnueabi
+TOOLCHAIN_DIR=/usr/${HOST?}
 mkdir -p ${STAGE?}/libc
 # copy everything except include (which we'll copy later), bin, which contains
 # x86 binaries and locale-archive which we don't want right now (it's
@@ -289,6 +299,28 @@ rsync -av ${TOOLCHAIN_DIR?}/include ${STAGE?}/libc/usr/
 Note: we want `include` in the sysroot, so we can compile against it, but we
 don't need it on the device to run programs...
 
+#### crosstool-ng toolchain
+
+The toolchain already contains a ready-made sysroot (with the headers already in
+`usr/include`), so we just copy it. We can ask the compiler where it is (this
+assumes the toolchain's `bin` directory is in your `PATH`, see
+[the crosstool-ng tutorial](../99-crosstool-ng)):
+
+```sh
+HOST=armv6-rpi-linux-gnueabihf
+TOOLCHAIN_SYSROOT=$(${HOST?}-gcc -print-sysroot)
+mkdir -p ${STAGE?}/libc
+# crosstool-ng makes its sysroot read-only, so add the write permission back,
+# otherwise we would not be able to copy over (or delete) the files later
+rsync -av --chmod=u+w --exclude="locale-archive" ${TOOLCHAIN_SYSROOT?}/ ${STAGE?}/libc/
+```
+
+*Note: this sysroot is bigger (around 140MB) than the ubuntu one as it also
+contains static libraries, `libstdc++` etc. You can exclude what you don't need
+on the device to save space.*
+
+#### Put libc into the sysroot
+
 And now put it into the sysroot
 
     rsync -av ${STAGE?}/libc/ ${SYSROOT?}/
@@ -297,7 +329,8 @@ And now put it into the sysroot
 
 TODO host triplets, --build --host...
 
-    HOST=arm-linux-gnueabi
+    # HOST was set in the libc section above, to match the toolchain you chose
+    echo ${HOST?}
 
 
 
