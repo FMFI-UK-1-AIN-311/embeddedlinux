@@ -201,6 +201,41 @@ easier to "rebuild" the sysroot with a different set of packages (i.e. when we
 want to remove a library because it was causing problems, or we just messed up
 something in the sysroot.)
 
+The picture below shows how the pieces fit together: every package is first
+installed into its own directory under `STAGE`, the sysroot is assembled by
+merging them, and the sysroot is finally copied to the rootfs on the SD card.
+For actuall embedded systems, there is usually some filtering done on the last
+step: the running systemd doesn't need build time only dependencies (headers /
+includes, static libraries), documentation etc.
+
+    $STAGE                            $SYSROOT                 rootfs
+    (one dir per package)             (merged)                 (SD card)
+
+    ┌──────────────────────┐
+    │ busybox/             │───┐
+    │   bin/ sbin/ ...     │   │
+    └──────────────────────┘   │
+                               │      ┌────────────────┐       ┌────────────────┐
+    ┌──────────────────────┐   │      │ bin/           │       │ bin/           │
+    │ libc/                │───┤      │ sbin/          │       │ sbin/          │
+    │   lib/ usr/include   │   │      │ lib/           │       │ lib/           │
+    └──────────────────────┘   │      │ └── modules/   │       │ └── modules/   │
+                               │      │ usr/           │       │ usr/           │
+    ┌──────────────────────┐   │      │ ├── bin/       │       │ ├── bin/       │
+    │ alsa-lib/            │───┼─────►│ ├── include/   │──────►│ │              │
+    │   usr/lib ...        │   │      │ └── lib/       │       │ └── lib/       │
+    └──────────────────────┘   │      │ etc/           │       │ etc/           │
+                               │      │ └── group      │       │ └── group      │
+    ┌──────────────────────┐   │      │ dev/           │       │ dev/           │
+    │ mpg123/              │───┤      │ proc/          │       │ proc/          │
+    │   usr/bin ...        │   │      │ sys/           │       │ sys/           │
+    └──────────────────────┘   │      └────────────────┘       └────────────────┘
+                               │
+    ┌──────────────────────┐   │
+    │ linux_modules/       │───┘
+    │   lib/modules/...    │
+    └──────────────────────┘
+
 We'll use the variables STAGE and SYSROOT to point to two directories, which
 we'll use as the staging and sysroot directories (the staging dir will have
 separate subdirectories for each "package".)
